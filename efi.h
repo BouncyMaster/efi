@@ -6,20 +6,40 @@
 
 #define EFI_SUCCESS	0
 
-typedef unsigned char		BOOLEAN;
-typedef unsigned int		UINT32;
+typedef unsigned short		UINT16;
 typedef int			INT32;
+typedef unsigned int		UINT32;
 typedef unsigned long long	UINT64;
-typedef unsigned short		CHAR16;
-typedef void			*EFI_HANDLE;
 typedef UINT64			UINTN;
+typedef UINT16			CHAR16;
+typedef unsigned char		BOOLEAN;
+typedef void *			EFI_HANDLE;
 typedef UINTN			EFI_STATUS;
+typedef void *			EFI_EVENT;
 
-/*
- * This struct is a placeholder and not usable at this time
- * The code will not compile without it though.
- */
-typedef struct EFI_SIMPLE_TEXT_INPUT_PROTOCOL {} EFI_SIMPLE_TEXT_INPUT_PROTOCOL;
+
+typedef struct EFI_INPUT_KEY {
+	UINT16	ScanCode;
+	CHAR16	UnicodeChar;
+} EFI_INPUT_KEY;
+
+// We are forward declaring this struct so that the function typedefs can operate.
+struct EFI_SIMPLE_TEXT_INPUT_PROTOCOL;
+
+typedef EFI_STATUS (*EFI_INPUT_RESET)(
+		struct EFI_SIMPLE_TEXT_INPUT_PROTOCOL *This,
+		BOOLEAN ExtendedVerification);
+
+typedef EFI_STATUS (*EFI_INPUT_READ_KEY)(
+		struct EFI_SIMPLE_TEXT_INPUT_PROTOCOL *This, EFI_INPUT_KEY *Key);
+
+// UEFI 2.10 Specs PDF Page 395
+typedef struct EFI_SIMPLE_TEXT_INPUT_PROTOCOL {
+	EFI_INPUT_RESET		Reset;
+	EFI_INPUT_READ_KEY	ReadKeyStroke;
+	EFI_EVENT		WaitForKey;
+} EFI_SIMPLE_TEXT_INPUT_PROTOCOL;
+
 
 // We are forward declaring this struct so that the function typedefs can operate.
 struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL;
@@ -78,6 +98,7 @@ typedef struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL {
 	EFI_TEXT_ENABLE_CURSOR		EnableCursor;
 	SIMPLE_TEXT_OUTPUT_MODE		*Mode;
 } EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL;
+
 
 /*
  * This is the main EFI header for all of the EFI protocols.
