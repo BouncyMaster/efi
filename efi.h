@@ -10,7 +10,9 @@ typedef unsigned char		UINT8;
 typedef unsigned short		UINT16;
 typedef int			INT32;
 typedef unsigned int		UINT32;
+typedef long long		INT64;
 typedef unsigned long long	UINT64;
+typedef INT64			INTN;
 typedef UINT64			UINTN;
 typedef UINT16			CHAR16;
 typedef unsigned char		BOOLEAN;
@@ -18,6 +20,8 @@ typedef UINT64			EFI_PHYSICAL_ADDRESS;
 typedef void *			EFI_HANDLE;
 typedef UINTN			EFI_STATUS;
 typedef void *			EFI_EVENT;
+
+#define EFI_ERROR(Status) (((INTN)Status) < 0)
 
 
 typedef struct {
