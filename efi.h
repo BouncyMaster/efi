@@ -1,11 +1,6 @@
 #ifndef EFI_H
 #define EFI_H
 
-#define TRUE	1
-#define FALSE	0
-
-#define EFI_SUCCESS	0
-
 typedef unsigned char		UINT8;
 typedef unsigned short		UINT16;
 typedef int			INT32;
@@ -17,10 +12,15 @@ typedef UINT64			UINTN;
 typedef UINT16			CHAR16;
 typedef unsigned char		BOOLEAN;
 typedef UINT64			EFI_PHYSICAL_ADDRESS;
+typedef UINT64			EFI_VIRTUAL_ADDRESS;
 typedef void *			EFI_HANDLE;
 typedef UINTN			EFI_STATUS;
 typedef void *			EFI_EVENT;
 
+#define TRUE	1
+#define FALSE	0
+
+#define EFI_SUCCESS	0
 #define EFI_ERROR(Status) (((INTN)Status) < 0)
 
 /*
@@ -195,6 +195,14 @@ typedef struct EFI_GRAPHICS_OUTPUT_PROTOCOL {
 
 
 typedef struct {
+	UINT32			Type;
+	EFI_PHYSICAL_ADDRESS	PhysicalStart;
+	EFI_VIRTUAL_ADDRESS	VirtualStart;
+	UINT64			NumberOfPages;
+	UINT64			Attribute;
+} EFI_MEMORY_DESCRIPTOR;
+
+typedef struct {
 	UINT16	Year;
 	UINT8	Month;
 	UINT8	Day;
@@ -214,9 +222,30 @@ typedef struct {
 	BOOLEAN		SetsToZero;
 } EFI_TIME_CAPABILITIES;
 
+typedef struct {
+	UINT32	Data1;
+	UINT16	Data2;
+	UINT16	Data3;
+	UINT8	Data4[8];
+} EFI_GUID;
+
+typedef enum {
+	EfiResetCold,
+	EfiResetWarm,
+	EfiResetShutdown
+	EfiResetPlatformSpecific
+} EFI_RESET_TYPE;
+
+typedef struct {
+	EFI_GUID	CapsuleGuid;
+	UINT32		HeaderSize;
+	UINT32		Flags;
+	UINT32		CapsuleImageSize;
+} EFI_CAPSULE_HEADER;
+
 /*
- * NOTE: Time functions are wrongly defined in the spec, e.g. function name is
- * SetTime instead of EFI_SET_TIME.
+ * NOTE: Some runtime services functions are wrongly defined in the spec,
+ * e.g. function name is SetTime instead of EFI_SET_TIME.
  */
 typedef EFI_STATUS (*EFI_GET_TIME)(EFI_TIME *Time,
 	EFI_TIME_CAPABILITIES *Capabilities);
@@ -228,7 +257,37 @@ typedef EFI_STATUS (*EFI_GET_WAKEUP_TIME)(BOOLEAN *Enabled, BOOLEAN *Pending,
 
 typedef EFI_STATUS (*EFI_SET_WAKEUP_TIME)(BOOLEAN Enable, EFI_TIME *Time);
 
-// TODO: EFI_RUNTIME_SERVICES members from SET_VIRTUAL_ADDRESS_MAP
+typedef EFI_STATUS (*EFI_SET_VIRTUAL_ADDRESS_MAP)(UINTN MemoryMapSize,
+	UINTN DescriptorSize, UINT32 DescriptorVersion,
+	EFI_MEMORY_DESCRIPTOR *VirtualMap);
+
+typedef EFI_STATUS (*EFI_CONVERT_POINTER)(UINTN DebugDisposition,
+	void **Address);
+
+typedef EFI_STATUS (*EFI_GET_VARIABLE)(CHAR16 *VariableName,
+	EFI_GUID *VendorGuid, UINT32 *Attributes, UINTN *DataSize, void *Data);
+
+typedef EFI_STATUS (*EFI_GET_NEXT_VARIABLE_NAME)(UINTN *VariableNameSize,
+	CHAR16 *VariableName, EFI_GUID *VendorGuid);
+
+typedef EFI_STATUS (*EFI_SET_VARIABLE)(CHAR16 *VariableName,
+	EFI_GUID *VendorGuid, UINT32 Attributes, UINTN DataSize, void *Data);
+
+typedef EFI_STATUS (*EFI_GET_NEXT_HIGH_MONO_COUNT)(UINT32 *HighCount);
+
+typedef EFI_STATUS (*EFI_RESET_SYSTEM)(EFI_RESET_TYPE ResetType,
+	EFI_STATUS ResetStatus, UINTN DataSize, void *ResetData);
+
+typedef EFI_STATUS (*EFI_UPDATE_CAPSULE)(EFI_CAPSULE_HEADER **CapsuleHeaderArray,
+	UINTN CapsuleCount, EFI_PHYSICAL_ADDRESS ScatterGatherList);
+
+typedef EFI_STATUS (*EFI_QUERY_CAPSULE_CAPABILITIES)(
+	EFI_CAPSULE_HEADER **CapsuleHeaderArray, UINTN CapsuleCount,
+	UINT64 *MaximumCapsuleSize, EFI_RESET_TYPE *ResetType);
+
+typedef EFI_STATUS (*EFI_QUERY_VARIABLE_INFO)(UINT32 Attributes,
+	UINT64 *MaximumVariableStorageSize, UINT64 *RemainingVariableStorageSize,
+	UINT64 *MaximumVariableSize);
 
 // UEFI 2.10 Specs PDF Page 96
 typedef struct {
@@ -249,6 +308,7 @@ typedef struct {
 	EFI_QUERY_VARIABLE_INFO		QueryVariableInfo;
 } EFI_RUNTIME_SERVICES;
 
+// TODO: define EFI_BOOT_SERVICES && EFI_CONFIGURATION_TABLE
 
 /*
  * EFI has a system and runtime. This system table is the first struct
