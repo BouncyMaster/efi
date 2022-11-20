@@ -16,6 +16,7 @@ typedef UINT64			EFI_VIRTUAL_ADDRESS;
 typedef void *			EFI_HANDLE;
 typedef UINTN			EFI_STATUS;
 typedef void *			EFI_EVENT;
+typedef UINTN			EFI_TPL;
 
 #define TRUE	1
 #define FALSE	0
@@ -308,7 +309,150 @@ typedef struct {
 	EFI_QUERY_VARIABLE_INFO		QueryVariableInfo;
 } EFI_RUNTIME_SERVICES;
 
-// TODO: define EFI_BOOT_SERVICES && EFI_CONFIGURATION_TABLE
+
+typedef enum {
+	AllocateAnyPages,
+	AllocateMaxAddress,
+	AllocateAddress,
+	MaxAllocateType
+} EFI_ALLOCATE_TYPE;
+
+typedef enum {
+	EfiReservedMemoryType,
+	EfiLoaderCode,
+	EfiLoaderData,
+	EfiBootServicesCode,
+	EfiBootServicesData,
+	EfiRuntimeServicesCode,
+	EfiRuntimeServicesData,
+	EfiConventionalMemory,
+	EfiUnusableMemory,
+	EfiACPIReclaimMemory,
+	EfiACPIMemoryNVS,
+	EfiMemoryMappedIO,
+	EfiMemoryMappedIOPortSpace,
+	EfiPalCode,
+	EfiPersistentMemory,
+	EfiUnacceptedMemoryType,
+	EfiMaxMemoryType
+} EFI_MEMORY_TYPE;
+
+typedef struct {
+	UINT32			Type;
+	EFI_PHYSICAL_ADDRESS	PhysicalStart;
+	EFI_VIRTUAL_ADDRESS	VirtualStart;
+	UINT64			NumberOfPages;
+	UINT64			Attribute;
+} EFI_MEMORY_DESCRIPTOR;
+
+typedef enum {
+	TimerCancel,
+	TimerPeriodic,
+	TimerRelative
+} EFI_TIMER_DELAY;
+
+typedef enum {
+	EFI_NATIVE_INTERFACE
+} EFI_INTERFACE_TYPE;
+
+typedef EFI_TPL (*EFI_RAISE_TPL)(EFI_TPL NewTpl);
+typedef void (*EFI_RESTORE_TPL)(EFI_TPL OldTpl);
+
+typedef EFI_STATUS (*EFI_ALLOCATE_PAGES)(EFI_ALLOCATE_TYPE Type,
+	EFI_MEMORY_TYPE MemoryType, UINTN Pages, EFI_PHYSICAL_ADDRESS *Memory);
+
+typedef EFI_STATUS (*EFI_FREE_PAGES)(EFI_PHYSICAL_ADDRESS Memory, UINTN Pages);
+
+typedef EFI_STATUS (*EFI_GET_MEMORY_MAP)(UINTN *MemoryMapSize,
+	EFI_MEMORY_DESCRIPTOR *MemoryMap, UINTN *MapKey, UINTN *DescriptorSize,
+	UINT32 *DescriptorVersion);
+
+typedef EFI_STATUS (*EFI_ALLOCATE_POOL)(EFI_MEMORY_TYPE PoolType, UINTN Size,
+	void **Buffer);
+
+typedef EFI_STATUS (*EFI_FREE_POOL)(void *Buffer);
+
+typedef void (*EFI_EVENT_NOTIFY)(EFI_EVENT Event, void *Context);
+
+typedef EFI_STATUS (*EFI_CREATE_EVENT)(UINT32 Type, EFI_TPL NotifyTpl,
+	EFI_EVENT_NOTIFY NotifyFunction, void *NotifyContext, EFI_EVENT *Event);
+
+typedef EFI_STATUS (*EFI_SET_TIMER)(EFI_EVENT Event, EFI_TIMER_DELAY Type,
+	UINT64 TriggerTime);
+
+typedef EFI_STATUS (*EFI_WAIT_FOR_EVENT)(UINTN NumberOfEvents, EFI_EVENT *Event,
+	UINTN *Index);
+
+typedef EFI_STATUS (*EFI_SIGNAL_EVENT)(EFI_EVENT Event);
+typedef EFI_STATUS (*EFI_CLOSE_EVENT)(EFI_EVENT Event);
+typedef EFI_STATUS (*EFI_CHECK_EVENT)(EFI_EVENT Event);
+
+typedef EFI_STATUS (*EFI_INSTALL_PROTOCOL_INTERFACE)(EFI_HANDLE *Handle,
+	EFI_GUID *Protocol, EFI_INTERFACE_TYPE InterfaceType, void *Interface);
+
+typedef EFI_STATUS (*EFI_REINSTALL_PROTOCOL_INTERFACE)(EFI_HANDLE Handle,
+	EFI_GUID *Protocol, void *OldInterface, void *NewInterface);
+
+typedef EFI_STATUS (*EFI_UNINSTALL_PROTOCOL_INTERFACE)(EFI_HANDLE Handle,
+	EFI_GUID *Protocol, void *Interface);
+
+typedef EFI_STATUS (*EFI_HANDLE_PROTOCOL)(EFI_HANDLE Handle, EFI_GUID *Protocol,
+	void **Interface);
+
+// UEFI 2.10 Specs PDF Page 92
+typedef struct {
+	EFI_TABLE_HEADER			Hdr;
+	EFI_RAISE_TPL				RaiseTPL;
+	EFI_RESTORE_TPL				RestoreTPL;
+	EFI_ALLOCATE_PAGES			AllocatePages;
+	EFI_FREE_PAGES				FreePages;
+	EFI_GET_MEMORY_MAP			GetMemoryMap;
+	EFI_ALLOCATE_POOL			AllocatePool;
+	EFI_FREE_POOL				FreePool;
+	EFI_CREATE_EVENT			CreateEvent;
+	EFI_SET_TIMER				SetTimer;
+	EFI_WAIT_FOR_EVENT			WaitForEvent;
+	EFI_SIGNAL_EVENT			SignalEvent;
+	EFI_CLOSE_EVENT				CloseEvent;
+	EFI_CHECK_EVENT				CheckEvent;
+	EFI_INSTALL_PROTOCOL_INTERFACE		InstallProtocolInterface;
+	EFI_REINSTALL_PROTOCOL_INTERFACE	ReinstallProtocolInterface;
+	EFI_UNINSTALL_PROTOCOL_INTERFACE	UninstallProtocolInterface;
+	EFI_HANDLE_PROTOCOL			HandleProtocol;
+	void *					Reserved;
+	EFI_REGISTER_PROTOCOL_NOTIFY		RegisterProtocolNotify;
+	EFI_LOCATE_HANDLE			LocateHandle;
+	EFI_LOCATE_DEVICE_PATH			LocateDevicePath;
+	EFI_INSTALL_CONFIGURATION_TABLE		InstallConfigurationTable;
+	EFI_IMAGE_UNLOAD			LoadImage;
+	EFI_IMAGE_START				StartImage;
+	EFI_EXIT				Exit;
+	EFI_IMAGE_UNLOAD			UnloadImage;
+	EFI_EXIT_BOOT_SERVICES			ExitBootServices;
+	EFI_GET_NEXT_MONOTONIC_COUNT		GetNextMonotonicCount;
+	EFI_STALL				Stall;
+	EFI_SET_WATCHDOG_TIMER			SetWatchdogTimer;
+	EFI_CONNECT_CONTROLLER			ConnectController;
+	EFI_DISCONNECT_CONTROLLER		DisconnectController;
+	EFI_OPEN_PROTOCOL			OpenProtocol;
+	EFI_CLOSE_PROTOCOL			CloseProtocol;
+	EFI_OPEN_PROTOCOL_INFORMATION		OpenProtocolInformation;
+	EFI_PROTOCOLS_PER_HANDLE		ProtocolsPerHandle;
+	EFI_LOCATE_HANDLE_BUFFER		LocateHandleBuffer;
+	EFI_LOCATE_PROTOCOL			LocateProtocol;
+	EFI_UNINSTALL_MULTIPLE_PROTOCOL_INTERFACES InstallMultipleProtocolInterfaces;
+	EFI_UNINSTALL_MULTIPLE_PROTOCOL_INTERFACES UninstallMultipleProtocolInterfaces;
+	EFI_CALCULATE_CRC32			CalculateCrc32;
+	EFI_COPY_MEM				CopyMem;
+	EFI_SET_MEM				SetMem;
+	EFI_CREATE_EVENT_EX			CreateEventEx;
+} EFI_BOOT_SERVICES;
+
+// UEFI 2.10 Specs PDF Page 98
+typedef struct{
+	EFI_GUID	VendorGuid;
+	void *		VendorTable;
+} EFI_CONFIGURATION_TABLE;
 
 /*
  * EFI has a system and runtime. This system table is the first struct
