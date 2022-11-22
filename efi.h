@@ -355,6 +355,18 @@ typedef enum {
 	EFI_NATIVE_INTERFACE
 } EFI_INTERFACE_TYPE;
 
+typedef enum {
+	AllHandles,
+	ByRegisterNotify,
+	ByProtocol
+} EFI_LOCATE_SEARCH_TYPE;
+
+typedef struct {
+	UINT8 Type;
+	UINT8 SubType;
+	UINT8 Length[2];
+} EFI_DEVICE_PATH_PROTOCOL;
+
 typedef EFI_TPL (*EFI_RAISE_TPL)(EFI_TPL NewTpl);
 typedef void (*EFI_RESTORE_TPL)(EFI_TPL OldTpl);
 
@@ -399,7 +411,53 @@ typedef EFI_STATUS (*EFI_UNINSTALL_PROTOCOL_INTERFACE)(EFI_HANDLE Handle,
 typedef EFI_STATUS (*EFI_HANDLE_PROTOCOL)(EFI_HANDLE Handle, EFI_GUID *Protocol,
 	void **Interface);
 
-// UEFI 2.10 Specs PDF Page 92
+typedef EFI_STATUS (*EFI_REGISTER_PROTOCOL_NOTIFY)(EFI_GUID *Protocol,
+	EFI_EVENT Event, void **Registration);
+
+typedef EFI_STATUS (*EFI_LOCATE_HANDLE)(EFI_LOCATE_SEARCH_TYPE SearchType,
+	EFI_GUID *Protocol, void *SearchKey, UINTN *BufferSize,
+	EFI_HANDLE *Buffer);
+
+typedef EFI_STATUS (*EFI_LOCATE_DEVICE_PATH)(EFI_GUID *Protocol,
+	EFI_DEVICE_PATH_PROTOCOL **DevicePath, EFI_HANDLE *Device);
+
+typedef EFI_STATUS (*EFI_INSTALL_CONFIGURATION_TABLE)(EFI_GUID *Guid,
+	void *Table);
+
+typedef EFI_STATUS (*EFI_IMAGE_LOAD)(BOOLEAN BootPolicy,
+	EFI_HANDLE ParentImageHandle, EFI_DEVICE_PATH_PROTOCOL *DevicePath,
+	void *SourceBuffer, UINTN SourceSize, EFI_HANDLE *ImageHandle);
+
+typedef EFI_STATUS (*EFI_IMAGE_START)(EFI_HANDLE ImageHandle,
+	UINTN *ExitDataSize, CHAR16 **ExitData);
+
+typedef EFI_STATUS (*EFI_EXIT)(EFI_HANDLE ImageHandle, EFI_STATUS ExitStatus,
+	UINTN ExitDataSize, CHAR16 *ExitData);
+
+typedef EFI_STATUS (*EFI_IMAGE_UNLOAD)(EFI_HANDLE ImageHandle);
+
+typedef EFI_STATUS (*EFI_EXIT_BOOT_SERVICES)(EFI_HANDLE ImageHandle,
+	UINTN MapKey);
+
+typedef EFI_STATUS (*EFI_GET_NEXT_MONOTONIC_COUNT)(UINT64 *Count);
+
+typedef EFI_STATUS (*EFI_STALL)(UINTN Microseconds);
+
+typedef EFI_STATUS (*EFI_SET_WATCHDOG_TIMER)(UINTN Timeout, UINT64 WatchdogCode,
+	UINTN DataSize, CHAR16 *WatchdogData);
+
+typedef EFI_STATUS (*EFI_CONNECT_CONTROLLER)(EFI_HANDLE ControllerHandle,
+	EFI_HANDLE *DriverImageHandle,
+	EFI_DEVICE_PATH_PROTOCOL *RemainingDevicePath, BOOLEAN Recursive);
+
+typedef EFI_STATUS (*EFI_DISCONNECT_CONTROLLER)(EFI_HANDLE ControllerHandle,
+	EFI_HANDLE DriverImageHandle, EFI_HANDLE ChildHandle);
+
+/*
+ * UEFI 2.10 Specs PDF Page 92
+ * NOTE: LoadImage function type is wrongly defined in the spec - function is
+ * EFI_IMAGE_UNLOAD instead of EFI_IMAGE_LOAD.
+ */
 typedef struct {
 	EFI_TABLE_HEADER			Hdr;
 	EFI_RAISE_TPL				RaiseTPL;
@@ -424,7 +482,7 @@ typedef struct {
 	EFI_LOCATE_HANDLE			LocateHandle;
 	EFI_LOCATE_DEVICE_PATH			LocateDevicePath;
 	EFI_INSTALL_CONFIGURATION_TABLE		InstallConfigurationTable;
-	EFI_IMAGE_UNLOAD			LoadImage;
+	EFI_IMAGE_LOAD				LoadImage;
 	EFI_IMAGE_START				StartImage;
 	EFI_EXIT				Exit;
 	EFI_IMAGE_UNLOAD			UnloadImage;
