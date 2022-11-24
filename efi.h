@@ -2,6 +2,7 @@
 #define EFI_H
 
 typedef unsigned char		UINT8;
+typedef short			INT16;
 typedef unsigned short		UINT16;
 typedef int			INT32;
 typedef unsigned int		UINT32;
@@ -212,7 +213,7 @@ typedef struct {
 	UINT8	Second;
 	UINT8	Pad1;
 	UINT32	Nanosecond;
-	INT16	TimeZone
+	INT16	TimeZone;
 	UINT8	Daylight;
 	UINT8	Pad2;
 } EFI_TIME;
@@ -233,7 +234,7 @@ typedef struct {
 typedef enum {
 	EfiResetCold,
 	EfiResetWarm,
-	EfiResetShutdown
+	EfiResetShutdown,
 	EfiResetPlatformSpecific
 } EFI_RESET_TYPE;
 
@@ -337,14 +338,6 @@ typedef enum {
 	EfiMaxMemoryType
 } EFI_MEMORY_TYPE;
 
-typedef struct {
-	UINT32			Type;
-	EFI_PHYSICAL_ADDRESS	PhysicalStart;
-	EFI_VIRTUAL_ADDRESS	VirtualStart;
-	UINT64			NumberOfPages;
-	UINT64			Attribute;
-} EFI_MEMORY_DESCRIPTOR;
-
 typedef enum {
 	TimerCancel,
 	TimerPeriodic,
@@ -362,10 +355,17 @@ typedef enum {
 } EFI_LOCATE_SEARCH_TYPE;
 
 typedef struct {
-	UINT8 Type;
-	UINT8 SubType;
-	UINT8 Length[2];
+	UINT8	Type;
+	UINT8	SubType;
+	UINT8	Length[2];
 } EFI_DEVICE_PATH_PROTOCOL;
+
+typedef struct {
+	EFI_HANDLE	AgentHandle;
+	EFI_HANDLE	ControllerHandle;
+	UINT32		Attributes;
+	UINT32		OpenCount;
+} EFI_OPEN_PROTOCOL_INFORMATION_ENTRY;
 
 typedef EFI_TPL (*EFI_RAISE_TPL)(EFI_TPL NewTpl);
 typedef void (*EFI_RESTORE_TPL)(EFI_TPL OldTpl);
@@ -428,13 +428,13 @@ typedef EFI_STATUS (*EFI_IMAGE_LOAD)(BOOLEAN BootPolicy,
 	EFI_HANDLE ParentImageHandle, EFI_DEVICE_PATH_PROTOCOL *DevicePath,
 	void *SourceBuffer, UINTN SourceSize, EFI_HANDLE *ImageHandle);
 
+typedef EFI_STATUS (*EFI_IMAGE_UNLOAD)(EFI_HANDLE ImageHandle);
+
 typedef EFI_STATUS (*EFI_IMAGE_START)(EFI_HANDLE ImageHandle,
 	UINTN *ExitDataSize, CHAR16 **ExitData);
 
 typedef EFI_STATUS (*EFI_EXIT)(EFI_HANDLE ImageHandle, EFI_STATUS ExitStatus,
 	UINTN ExitDataSize, CHAR16 *ExitData);
-
-typedef EFI_STATUS (*EFI_IMAGE_UNLOAD)(EFI_HANDLE ImageHandle);
 
 typedef EFI_STATUS (*EFI_EXIT_BOOT_SERVICES)(EFI_HANDLE ImageHandle,
 	UINTN MapKey);
@@ -453,10 +453,55 @@ typedef EFI_STATUS (*EFI_CONNECT_CONTROLLER)(EFI_HANDLE ControllerHandle,
 typedef EFI_STATUS (*EFI_DISCONNECT_CONTROLLER)(EFI_HANDLE ControllerHandle,
 	EFI_HANDLE DriverImageHandle, EFI_HANDLE ChildHandle);
 
+typedef EFI_STATUS (*EFI_OPEN_PROTOCOL)(EFI_HANDLE Handle, EFI_GUID *Protocol,
+	void **Interface, EFI_HANDLE AgentHandle, EFI_HANDLE ControllerHandle,
+	UINT32 Attributes);
+
+typedef EFI_STATUS (*EFI_CLOSE_PROTOCOL)(EFI_HANDLE Handle, EFI_GUID *Protocol,
+	EFI_HANDLE AgentHandle, EFI_HANDLE ControllerHandle);
+
+typedef EFI_STATUS (*EFI_CLOSE_PROTOCOL)(EFI_HANDLE Handle, EFI_GUID *Protocol,
+	EFI_HANDLE AgentHandle, EFI_HANDLE ControllerHandle);
+
+typedef EFI_STATUS (*EFI_OPEN_PROTOCOL_INFORMATION)(EFI_HANDLE Handle,
+	EFI_GUID *Protocol, EFI_OPEN_PROTOCOL_INFORMATION_ENTRY **EntryBuffer,
+	UINTN *EntryCount);
+
+typedef EFI_STATUS (*EFI_PROTOCOLS_PER_HANDLE)(EFI_HANDLE Handle,
+	EFI_GUID ***ProtocolBuffer, UINTN *ProtocolBufferCount);
+
+typedef EFI_STATUS (*EFI_LOCATE_HANDLE_BUFFER)(EFI_LOCATE_SEARCH_TYPE SearchType,
+	EFI_GUID *Protocol, void *SearchKey, UINTN *NoHandles,
+	EFI_HANDLE **Buffer);
+
+typedef EFI_STATUS (*EFI_LOCATE_PROTOCOL)(EFI_GUID *Protocol, void *Registration,
+	void **Interface);
+
+typedef EFI_STATUS (*EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES)(
+	EFI_HANDLE *Handle, ...);
+
+typedef EFI_STATUS (*EFI_UNINSTALL_MULTIPLE_PROTOCOL_INTERFACES)(
+	EFI_HANDLE Handle, ...);
+
+typedef EFI_STATUS (*EFI_CALCULATE_CRC32)(void *Data, UINTN DataSize,
+	UINT32 *Crc32);
+
+typedef void (*EFI_COPY_MEM)(void *Destination, void *Source, UINTN Length);
+
+typedef void (*EFI_SET_MEM)(void *Buffer, UINTN Size, UINT8 Value);
+
+typedef void (*EFI_CREATE_EVENT_EX)(UINT32 Type, EFI_TPL NotifyTpl,
+	EFI_EVENT_NOTIFY NotifyFunction, const void *NotifyContext,
+	const EFI_GUID *EventGroup, EFI_EVENT *Event);
+
 /*
  * UEFI 2.10 Specs PDF Page 92
  * NOTE: LoadImage function type is wrongly defined in the spec - function is
  * EFI_IMAGE_UNLOAD instead of EFI_IMAGE_LOAD.
+ *
+ * NOTE 2: InstallMultipleProtocolInterfaces function type is wrongly defined
+ * in the spec - function is EFI_UNINSTALL_MULTIPLE_PROTOCOL_INTERFACES instead
+ * of EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES.
  */
 typedef struct {
 	EFI_TABLE_HEADER			Hdr;
@@ -498,7 +543,7 @@ typedef struct {
 	EFI_PROTOCOLS_PER_HANDLE		ProtocolsPerHandle;
 	EFI_LOCATE_HANDLE_BUFFER		LocateHandleBuffer;
 	EFI_LOCATE_PROTOCOL			LocateProtocol;
-	EFI_UNINSTALL_MULTIPLE_PROTOCOL_INTERFACES InstallMultipleProtocolInterfaces;
+	EFI_INSTALL_MULTIPLE_PROTOCOL_INTERFACES InstallMultipleProtocolInterfaces;
 	EFI_UNINSTALL_MULTIPLE_PROTOCOL_INTERFACES UninstallMultipleProtocolInterfaces;
 	EFI_CALCULATE_CRC32			CalculateCrc32;
 	EFI_COPY_MEM				CopyMem;
