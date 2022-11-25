@@ -24,7 +24,7 @@ typedef UINTN			EFI_TPL;
 
 #define MAX_BIT 0x8000000000000000ULL
 #define EFI_ERROR(Status) (((INTN)(Status)) < 0)
-#define ENCODE_ERROR(Status) ((UINTN)(MAX_BIT | (StatusCode)))
+#define ENCODE_ERROR(Status) ((UINTN)(MAX_BIT | (Status)))
 
 #define EFI_SUCCESS		0
 #define EFI_LOAD_ERROR		ENCODE_ERROR(1)
