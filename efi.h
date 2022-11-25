@@ -31,6 +31,9 @@ typedef UINTN			EFI_TPL;
 #define EFI_INVALID_PARAMETER	ENCODE_ERROR(2)
 #define EFI_UNSUPPORTED		ENCODE_ERROR(3)
 
+#define EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID \
+	{0x9042a9de,0x23dc,0x4a38, {0x96,0xfb,0x7a,0xde,0xd0,0x80,0x51,0x6a}}
+
 /*
  * This is the main EFI header for all of the EFI protocols.
  * UEFI 2.10 Specs PDF Page 89
