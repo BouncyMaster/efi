@@ -33,6 +33,8 @@ typedef UINTN			EFI_TPL;
 
 #define EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID \
 	{0x9042a9de,0x23dc,0x4a38, {0x96,0xfb,0x7a,0xde,0xd0,0x80,0x51,0x6a}}
+#define EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID \
+	{0x0964e5b22,0x6459,0x11d2, {0x8e,0x39,0x00,0xa0,0xc9,0x69,0x72,0x3b}}
 
 /*
  * This is the main EFI header for all of the EFI protocols.
@@ -203,6 +205,89 @@ typedef struct EFI_GRAPHICS_OUTPUT_PROTOCOL {
 	EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT		Blt;
 	EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *		Mode;
 } EFI_GRAPHICS_OUTPUT_PROTOCOL;
+
+
+typedef struct {
+	EFI_EVENT	Event;
+	EFI_STATUS	Status;
+	UINTN		BufferSize;
+	void *		Buffer;
+} EFI_FILE_IO_TOKEN;
+
+// We are forward declaring this struct so that the function typedefs can operate.
+struct EFI_FILE_PROTOCOL;
+
+typedef EFI_STATUS (*EFI_FILE_OPEN)(struct EFI_FILE_PROTOCOL *This,
+	struct EFI_FILE_PROTOCOL **NewHandle, CHAR16 *FileName, UINT64 OpenMode,
+	UINT64 Attributes);
+
+typedef EFI_STATUS (*EFI_FILE_CLOSE)(struct EFI_FILE_PROTOCOL *This);
+
+typedef EFI_STATUS (*EFI_FILE_DELETE)(struct EFI_FILE_PROTOCOL *This);
+
+typedef EFI_STATUS (*EFI_FILE_READ)(struct EFI_FILE_PROTOCOL *This,
+	UINTN *BufferSize, void *Buffer);
+
+typedef EFI_STATUS (*EFI_FILE_WRITE)(struct EFI_FILE_PROTOCOL *This,
+	UINTN *BufferSize, void *Buffer);
+
+typedef EFI_STATUS (*EFI_FILE_GET_POSITION)(struct EFI_FILE_PROTOCOL *This,
+	UINT64 *Position);
+
+typedef EFI_STATUS (*EFI_FILE_SET_POSITION)(struct EFI_FILE_PROTOCOL *This,
+	UINT64 Position);
+
+typedef EFI_STATUS (*EFI_FILE_GET_INFO)(struct EFI_FILE_PROTOCOL *This,
+	EFI_GUID *InformationType, UINTN *BufferSize, void *Buffer);
+
+typedef EFI_STATUS (*EFI_FILE_SET_INFO)(struct EFI_FILE_PROTOCOL *This,
+	EFI_GUID *InformationType, UINTN BufferSize, void *Buffer);
+
+typedef EFI_STATUS (*EFI_FILE_FLUSH)(struct EFI_FILE_PROTOCOL *This);
+
+typedef EFI_STATUS (*EFI_FILE_OPEN_EX)(struct EFI_FILE_PROTOCOL *This,
+	struct EFI_FILE_PROTOCOL **NewHandle, CHAR16 *FileName, UINT64 OpenMode,
+	UINT64 Attributes, EFI_FILE_IO_TOKEN *Token);
+
+typedef EFI_STATUS (*EFI_FILE_READ_EX)(struct EFI_FILE_PROTOCOL *This,
+	EFI_FILE_IO_TOKEN *Token);
+
+typedef EFI_STATUS (*EFI_FILE_WRITE_EX)(struct EFI_FILE_PROTOCOL *This,
+	EFI_FILE_IO_TOKEN *Token);
+
+typedef EFI_STATUS (*EFI_FILE_FLUSH_EX)(struct EFI_FILE_PROTOCOL *This,
+	EFI_FILE_IO_TOKEN *Token);
+
+// UEFI 2.10 Specs PDF Page 450
+typedef struct EFI_FILE_PROTOCOL {
+	UINT64			Revision;
+	EFI_FILE_OPEN		Open;
+	EFI_FILE_CLOSE		Close;
+	EFI_FILE_DELETE		Delete;
+	EFI_FILE_READ		Read;
+	EFI_FILE_WRITE		Write;
+	EFI_FILE_GET_POSITION	GetPosition;
+	EFI_FILE_SET_POSITION	SetPosition;
+	EFI_FILE_GET_INFO	GetInfo;
+	EFI_FILE_SET_INFO	SetInfo;
+	EFI_FILE_FLUSH		Flush;
+	EFI_FILE_OPEN_EX	OpenEx;
+	EFI_FILE_READ_EX	ReadEx;
+	EFI_FILE_WRITE_EX	WriteEx;
+	EFI_FILE_FLUSH_EX	FlushEx;
+} EFI_FILE_PROTOCOL;
+
+// We are forward declaring this struct so that the function typedefs can operate.
+struct EFI_SIMPLE_FILE_SYSTEM_PROTOCOL;
+
+typedef EFI_STATUS (*EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_OPEN_VOLUME)(
+	struct EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *This, EFI_FILE_PROTOCOL **Root);
+
+// UEFI 2.10 Specs PDF Page 449
+typedef struct EFI_SIMPLE_FILE_SYSTEM_PROTOCOL {
+	UINT64						Revision;
+	EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_OPEN_VOLUME	OpenVolume;
+} EFI_SIMPLE_FILE_SYSTEM_PROTOCOL;
 
 
 typedef struct {
