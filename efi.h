@@ -48,6 +48,13 @@ typedef struct {
 	UINT32	Reserved;
 } EFI_TABLE_HEADER;
 
+typedef struct {
+	UINT32	Data1;
+	UINT16	Data2;
+	UINT16	Data3;
+	UINT8	Data4[8];
+} EFI_GUID;
+
 
 typedef struct {
 	UINT16	ScanCode;
@@ -317,13 +324,6 @@ typedef struct {
 	UINT32		Accuracy;
 	BOOLEAN		SetsToZero;
 } EFI_TIME_CAPABILITIES;
-
-typedef struct {
-	UINT32	Data1;
-	UINT16	Data2;
-	UINT16	Data3;
-	UINT8	Data4[8];
-} EFI_GUID;
 
 typedef enum {
 	EfiResetCold,
