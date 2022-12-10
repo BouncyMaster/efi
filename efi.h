@@ -22,6 +22,10 @@ typedef UINTN			EFI_TPL;
 #define TRUE	1
 #define FALSE	0
 
+#define EFI_PAGE_SHIFT	12
+#define EFI_PAGE_MASK	0xFFF
+#define EFI_SIZE_TO_PAGES(Size) (((Size) >> EFI_PAGE_SHIFT) + (((Size) & EFI_PAGE_MASK) ? 1 : 0))
+
 #define MAX_BIT 0x8000000000000000ULL // 1<<63
 #define EFI_ERROR(Status) (((INTN)(Status)) < 0)
 #define ENCODE_ERROR(Status) ((UINTN)(MAX_BIT | (Status)))
